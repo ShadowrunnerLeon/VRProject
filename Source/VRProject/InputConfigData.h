@@ -18,5 +18,8 @@ class VRPROJECT_API UInputConfigData : public UDataAsset
 		UInputAction* teleport;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UInputAction* grab;
+		UInputAction* grabLeft;
+
+		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+		UInputAction* grabRight;
 };

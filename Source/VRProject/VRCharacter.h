@@ -4,83 +4,38 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "InputConfigData.h"
-#include "GrabComponent.h"
 #include "VRCharacter.generated.h"
 
-class UCameraComponent;
 class UMotionControllerComponent;
-class UNiagaraComponent;
-class UInputMappingContext;
-class AVRTeleportVisualizer;
+class UCameraComponent;
 
 UCLASS()
 class VRPROJECT_API AVRCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	const float localTeleportLaunchSpeed = 650.f;
-	const float localTeleportProjectileRadius = 3.6;
-	const float localNavMeshCellHeight = 8.f;
-	const float grabRadiusFromGripPosition = 6.f;
-
-	float localNearestComponentDistance = 9999999.f;
-
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* camera;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
-	class UInputMappingContext* inputMapping;
+	UPROPERTY(EditDefaultsOnly)
+	class UMotionControllerComponent* leftMotionController;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
-	UInputConfigData* inputActions;
+	UPROPERTY(EditDefaultsOnly)
+	class UMotionControllerComponent* rightMotionController;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
-	bool bTeleportTraceActive;
+public:
+	// Sets default values for this character's properties
+	AVRCharacter();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
-	AVRTeleportVisualizer* vrTeleportVisualizer;
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grab")
-	UGrabComponent* leftGrabComponent;
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Grab")
-	UGrabComponent* rightGrabComponent;
-
-	public:
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Controller")
-		class UMotionControllerComponent* leftMotionController;
-
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Controller")
-		class UMotionControllerComponent* rightMotionController;
-
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Controller")
-		class UMotionControllerComponent* leftMotionControllerAim;
-
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Controller")
-		class UMotionControllerComponent* rightMotionControllerAim;
-
-		UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Teleport")
-		class UNiagaraComponent* teleportTraceNiagaraSystem;
-
-	public:
-		AVRCharacter();
-
-	protected:
-		virtual void BeginPlay() override;
-
-		void SnapTurn_Started(const FInputActionValue& value);
-		void Teleport_Started();
-		void Teleport_Triggered();
-		void Teleport_Completed();
-		void Grab_Started(UMotionControllerComponent* motionController);
-		void Grab_Completed(UMotionControllerComponent* motionController);
-		bool IsValidTeleportLocation(FHitResult& hit, FVector& projectedLocation);
-		UGrabComponent* GetGrabComponentNearMotionController(UMotionControllerComponent* motionController);
-
-	public:	
-		virtual void Tick(float DeltaTime) override;
-		virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };

@@ -7,7 +7,8 @@ UGrabComponent::UGrabComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	bSimulateOnDrop = false;
-	hapticEffect = FindObject<UHapticFeedbackEffect_Base>(FTopLevelAssetPath("/Game/VRTemplate/Haptics/GrabHapticEffect"));
+	// Находит ли объект по этому пути?
+	hapticEffect = FindObject<UHapticFeedbackEffect_Base>(FTopLevelAssetPath("/Game/VRTemplate/Haptics/GrabHapticEffect.uasset"));
 }
 
 void UGrabComponent::BeginPlay()

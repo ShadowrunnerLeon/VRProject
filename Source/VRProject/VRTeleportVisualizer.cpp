@@ -7,6 +7,15 @@
 AVRTeleportVisualizer::AVRTeleportVisualizer()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	root->SetupAttachment(RootComponent);
+
+	teleportRing = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NS_TeleportRing"));
+	teleportRing->SetupAttachment(root);
+
+	playAreaBounds = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NS_PlayAreaBounds"));
+	playAreaBounds->SetupAttachment(root);
 }
 
 void AVRTeleportVisualizer::BeginPlay()

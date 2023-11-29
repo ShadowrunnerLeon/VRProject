@@ -23,7 +23,12 @@
 		{
 			"Name": "EnhancedInput",
 			"Enabled": true
+		},
+		{
+			"Name": "PICOLivePreview",
+			"Enabled": true
 		}
+
 	],
 	"TargetPlatforms": [
 		"Android",
