@@ -12,14 +12,8 @@ class VRPROJECT_API UInputConfigData : public UDataAsset
 
 	public:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UInputAction* snapTurn;
+		UInputAction* turn;
 
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UInputAction* teleport;
-
-		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UInputAction* grabLeft;
-
-		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-		UInputAction* grabRight;
+		UInputAction* move;
 };

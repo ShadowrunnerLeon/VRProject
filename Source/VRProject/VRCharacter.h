@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "InputActionValue.h"
 #include "VRCharacter.generated.h"
 
 class UMotionControllerComponent;
 class UCameraComponent;
+class UInputConfigData;
 
 UCLASS()
 class VRPROJECT_API AVRCharacter : public ACharacter
@@ -17,11 +19,17 @@ class VRPROJECT_API AVRCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* camera;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Motion")
 	class UMotionControllerComponent* leftMotionController;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Motion")
 	class UMotionControllerComponent* rightMotionController;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+	class UInputMappingContext* inputMapping;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+	class UInputConfigData* inputActions;
 
 public:
 	// Sets default values for this character's properties
@@ -37,5 +45,6 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	void Turn_Started(const FInputActionValue& value);
+	void Move_Started(const FInputActionValue& value);
 };
