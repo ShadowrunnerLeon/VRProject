@@ -31,8 +31,6 @@ void AVRCharacter::BeginPlay()
 
 void AVRCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-
 }
 
 void AVRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -44,7 +42,7 @@ void AVRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	UEnhancedInputComponent* inputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 	inputComponent->BindAction(inputActions->turn, ETriggerEvent::Started, this, &AVRCharacter::Turn_Started);
-	inputComponent->BindAction(inputActions->move, ETriggerEvent::Started, this, &AVRCharacter::Move_Started);
+	inputComponent->BindAction(inputActions->move, ETriggerEvent::Triggered, this, &AVRCharacter::Move_Triggered);
 }
 
 void AVRCharacter::Turn_Started(const FInputActionValue& value)
@@ -56,9 +54,9 @@ void AVRCharacter::Turn_Started(const FInputActionValue& value)
 	controller->SetControlRotation(rot);
 }
 
-void AVRCharacter::Move_Started(const FInputActionValue& value)
+void AVRCharacter::Move_Triggered(const FInputActionValue& value)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Move_Started", true, true, FLinearColor::Green);
-	AddMovementInput(rightMotionController->GetForwardVector(), value.Get<float>());
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Move_Triggered", true, true, FLinearColor::Green);
+	AddMovementInput(camera->GetForwardVector(), value.Get<float>());
 }
 
