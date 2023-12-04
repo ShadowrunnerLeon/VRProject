@@ -54,8 +54,11 @@ void AVRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	inputComponent->BindAction(inputActions->turn, ETriggerEvent::Started, this, &AVRCharacter::Turn_Started);
 	inputComponent->BindAction(inputActions->move, ETriggerEvent::Triggered, this, &AVRCharacter::Move_Triggered);
 
-	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Started, this, &AVRCharacter::GrabLeft_Started);
-	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Completed, this, &AVRCharacter::GrabLeft_Completed);
+	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Started, this, &AVRCharacter::Grab_Started, leftMotionController);
+	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Completed, this, &AVRCharacter::Grab_Completed, leftMotionController);
+
+	inputComponent->BindAction(inputActions->grabRight, ETriggerEvent::Started, this, &AVRCharacter::Grab_Started, rightMotionController);
+	inputComponent->BindAction(inputActions->grabRight, ETriggerEvent::Completed, this, &AVRCharacter::Grab_Completed, rightMotionController);
 }
 
 void AVRCharacter::Turn_Started(const FInputActionValue& value)
@@ -73,9 +76,9 @@ void AVRCharacter::Move_Triggered(const FInputActionValue& value)
 	AddMovementInput(camera->GetForwardVector(), value.Get<float>());
 }
 
-void AVRCharacter::GrabLeft_Started(const FInputActionValue& value)
+void AVRCharacter::Grab_Started(const FInputActionValue& value, UMotionControllerComponent* motionController)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"GrabLeft_Started", true, true, FLinearColor::Green);
+	UKismetSystemLibrary::PrintString(GetWorld(), L"Grab_Started", true, true, FLinearColor::Green);
 	TArray<AActor*> overlappingActors;
 	leftSphere->GetOverlappingActors(overlappingActors);
 
@@ -84,19 +87,34 @@ void AVRCharacter::GrabLeft_Started(const FInputActionValue& value)
 		if (actor->IsA(AGrabCube::StaticClass()))
 		{
 			UGrabComponent* grabComponent = Cast<AGrabCube>(actor)->GetGrabComponent();
-			grabComponent->TryGrab(leftMotionController);
-			leftGrabComponent = grabComponent;
+			grabComponent->TryGrab(motionController);
+		
+			if (motionController->GetTrackingMotionSource() == "Left")
+			{
+				leftGrabComponent = grabComponent;
+				rightGrabComponent = nullptr;
+			}
+			else if (motionController->GetTrackingMotionSource() == "Right")
+			{
+				rightGrabComponent = grabComponent;
+				leftGrabComponent = nullptr;
+			}
 		}
 	}
 }
 
-void AVRCharacter::GrabLeft_Completed(const FInputActionValue& value)
+void AVRCharacter::Grab_Completed(const FInputActionValue& value, UMotionControllerComponent* motionController)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"GrabLeft_Completed", true, true, FLinearColor::Green);
-	if (IsValid(leftGrabComponent))
+	UKismetSystemLibrary::PrintString(GetWorld(), L"Grab_Completed", true, true, FLinearColor::Green);
+	if ((motionController->GetTrackingMotionSource() == "Left") && IsValid(leftGrabComponent))
 	{
 		leftGrabComponent->TryRelease();
 		leftGrabComponent = nullptr;
+	}
+	else if ((motionController->GetTrackingMotionSource() == "Right") && IsValid(rightGrabComponent))
+	{
+		rightGrabComponent->TryRelease();
+		rightGrabComponent = nullptr;
 	}
 }
 

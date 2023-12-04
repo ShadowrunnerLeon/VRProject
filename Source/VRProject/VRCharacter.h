@@ -62,6 +62,6 @@ public:
 	void Turn_Started(const FInputActionValue& value);
 	void Move_Triggered(const FInputActionValue& value);
 
-	void GrabLeft_Started(const FInputActionValue& value);
-	void GrabLeft_Completed(const FInputActionValue& value);
+	void Grab_Started(const FInputActionValue& value, UMotionControllerComponent* motionController);
+	void Grab_Completed(const FInputActionValue& value, UMotionControllerComponent* motionController);
 };
