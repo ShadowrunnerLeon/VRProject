@@ -8,6 +8,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GrabComponent.h"
+#include "Components/SphereComponent.h"
+#include "GrabCube.h"
 
 AVRCharacter::AVRCharacter()
 {
@@ -23,6 +25,12 @@ AVRCharacter::AVRCharacter()
 	rightMotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("RightMotionController"));
 	rightMotionController->SetupAttachment(RootComponent);
 	rightMotionController->SetTrackingMotionSource("Right");
+
+	leftSphere = CreateDefaultSubobject<USphereComponent>(TEXT("leftSphere"));
+	leftSphere->SetupAttachment(leftMotionController);
+
+	rightSphere = CreateDefaultSubobject<USphereComponent>(TEXT("rightSphere"));
+	rightSphere->SetupAttachment(rightMotionController);
 }
 
 void AVRCharacter::BeginPlay()
@@ -46,10 +54,8 @@ void AVRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	inputComponent->BindAction(inputActions->turn, ETriggerEvent::Started, this, &AVRCharacter::Turn_Started);
 	inputComponent->BindAction(inputActions->move, ETriggerEvent::Triggered, this, &AVRCharacter::Move_Triggered);
 
-	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Started, this, &AVRCharacter::Grab_Started, leftMotionController);
-	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Completed, this, &AVRCharacter::Grab_Completed, leftMotionController);
-	inputComponent->BindAction(inputActions->grabRight, ETriggerEvent::Started, this, &AVRCharacter::Grab_Started, rightMotionController);
-	inputComponent->BindAction(inputActions->grabRight, ETriggerEvent::Completed, this, &AVRCharacter::Grab_Completed, rightMotionController);
+	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Started, this, &AVRCharacter::GrabLeft_Started);
+	inputComponent->BindAction(inputActions->grabLeft, ETriggerEvent::Completed, this, &AVRCharacter::GrabLeft_Completed);
 }
 
 void AVRCharacter::Turn_Started(const FInputActionValue& value)
@@ -67,74 +73,30 @@ void AVRCharacter::Move_Triggered(const FInputActionValue& value)
 	AddMovementInput(camera->GetForwardVector(), value.Get<float>());
 }
 
-void AVRCharacter::Grab_Started(const FInputActionValue& value, UMotionControllerComponent* motionController)
+void AVRCharacter::GrabLeft_Started(const FInputActionValue& value)
 {
-	UGrabComponent* grabComponent = GetGrabComponentNearMotionController(motionController);
-	if (!IsValid(grabComponent)) return;
+	UKismetSystemLibrary::PrintString(GetWorld(), L"GrabLeft_Started", true, true, FLinearColor::Green);
+	TArray<AActor*> overlappingActors;
+	leftSphere->GetOverlappingActors(overlappingActors);
 
-	bool isAttached = grabComponent->TryGrab(motionController);
-	if (!isAttached) return;
-
-	if (motionController->MotionSource == FName("Left"))
+	for (AActor* actor : overlappingActors)
 	{
-		leftGrabComponent = grabComponent;
-		rightGrabComponent = (leftGrabComponent == rightGrabComponent) ? nullptr : rightGrabComponent;
-	}
-	else
-	{
-		rightGrabComponent = grabComponent;
-		leftGrabComponent = (leftGrabComponent == rightGrabComponent) ? nullptr : leftGrabComponent;
+		if (actor->IsA(AGrabCube::StaticClass()))
+		{
+			UGrabComponent* grabComponent = Cast<AGrabCube>(actor)->GetGrabComponent();
+			grabComponent->TryGrab(leftMotionController);
+			leftGrabComponent = grabComponent;
+		}
 	}
 }
 
-void AVRCharacter::Grab_Completed(const FInputActionValue& value, UMotionControllerComponent* motionController)
+void AVRCharacter::GrabLeft_Completed(const FInputActionValue& value)
 {
-	if (motionController->MotionSource == FName("Left"))
+	UKismetSystemLibrary::PrintString(GetWorld(), L"GrabLeft_Completed", true, true, FLinearColor::Green);
+	if (IsValid(leftGrabComponent))
 	{
 		leftGrabComponent->TryRelease();
 		leftGrabComponent = nullptr;
 	}
-	else
-	{
-		rightGrabComponent->TryRelease();
-		rightGrabComponent = nullptr;
-	}
-}
-
-UGrabComponent* AVRCharacter::GetGrabComponentNearMotionController(UMotionControllerComponent* motionController)
-{
-	UGrabComponent* localNearestGrabComponent = nullptr;
-	FVector localGripPosition = motionController->GetComponentLocation();
-	TArray<TEnumAsByte<EObjectTypeQuery>> traceObjects;
-	TArray<AActor*> actorsToIgnore;
-	FHitResult outHit;
-
-	UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(),
-		localGripPosition,
-		localGripPosition,
-		grabRadiusFromGripPosition,
-		traceObjects,
-		false,
-		actorsToIgnore,
-		EDrawDebugTrace::None,
-		outHit,
-		true);
-
-	TArray<UGrabComponent*> grabComponents;
-	outHit.GetActor()->GetComponents(grabComponents);
-
-	for (size_t index = 0; index < grabComponents.Num(); ++index)
-	{
-		FVector grabComponentLocation = grabComponents[index]->GetComponentLocation();
-		float squaredLength = UKismetMathLibrary::VSizeSquared(grabComponentLocation - localGripPosition);
-
-		if (squaredLength < localNearestComponentDistance)
-		{
-			localNearestComponentDistance = squaredLength;
-			localNearestGrabComponent = grabComponents[index];
-		}
-	}
-
-	return localNearestGrabComponent;
 }
 

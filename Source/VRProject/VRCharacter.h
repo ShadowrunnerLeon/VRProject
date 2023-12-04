@@ -11,14 +11,12 @@ class UMotionControllerComponent;
 class UCameraComponent;
 class UInputConfigData;
 class UGrabComponent;
+class USphereComponent;
 
 UCLASS()
 class VRPROJECT_API AVRCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
-	float localNearestComponentDistance = 9999999.f;
-	const float grabRadiusFromGripPosition = 6.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* camera;
@@ -36,10 +34,16 @@ class VRPROJECT_API AVRCharacter : public ACharacter
 	class UInputConfigData* inputActions;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Grab")
-	UGrabComponent* leftGrabComponent;
+	class UGrabComponent* leftGrabComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Grab")
-	UGrabComponent* rightGrabComponent;
+	class UGrabComponent* rightGrabComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Grab")
+	class USphereComponent* leftSphere;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Grab")
+	class USphereComponent* rightSphere;
 
 public:
 	// Sets default values for this character's properties
@@ -58,8 +62,6 @@ public:
 	void Turn_Started(const FInputActionValue& value);
 	void Move_Triggered(const FInputActionValue& value);
 
-	void Grab_Started(const FInputActionValue& value, UMotionControllerComponent* motionController);
-	void Grab_Completed(const FInputActionValue& value, UMotionControllerComponent* motionController);
-	UGrabComponent* GetGrabComponentNearMotionController(UMotionControllerComponent* motionController);
-
+	void GrabLeft_Started(const FInputActionValue& value);
+	void GrabLeft_Completed(const FInputActionValue& value);
 };

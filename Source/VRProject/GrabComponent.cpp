@@ -6,20 +6,17 @@
 UGrabComponent::UGrabComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	bSimulateOnDrop = false;
-	// Находит ли объект по этому пути?
-	hapticEffect = FindObject<UHapticFeedbackEffect_Base>(FTopLevelAssetPath("/Game/VRTemplate/Haptics/GrabHapticEffect.uasset"));
+
+	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 }
 
 void UGrabComponent::BeginPlay()
 {
-	SetShouldSimulateOnDrop();
-	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
-	primComponent->SetCollisionProfileName(FName("PhysicsActor"));
 }
 
 bool UGrabComponent::TryGrab(UMotionControllerComponent* motionControllerComponent)
 {
+	UKismetSystemLibrary::PrintString(GetWorld(), L"Grab", true, true, FLinearColor::Green);
 	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
 	primComponent->SetSimulatePhysics(false);
 
@@ -33,52 +30,25 @@ bool UGrabComponent::TryGrab(UMotionControllerComponent* motionControllerCompone
 		true
 	);
 
-	if (!isAttached)
-	{
-		FString errMsg = (TEXT("Attaching %s to %s failed"), UKismetSystemLibrary::GetDisplayName(GetAttachParent()), UKismetSystemLibrary::GetDisplayName(this));
-		UKismetSystemLibrary::PrintString(GetWorld(), errMsg);
-	}
-	else
-	{
-		APlayerController* palyerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		if (motionControllerComponent->MotionSource == FName("Left"))
-		{
-			palyerController->PlayHapticEffect(hapticEffect, EControllerHand::Left);
-		}
-		else
-		{
-			palyerController->PlayHapticEffect(hapticEffect, EControllerHand::Right);
-		}
-	}
-
 	return isAttached;
 }
 
 void UGrabComponent::TryRelease()
 {
-	if (bSimulateOnDrop)
-	{
-		UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
-		primComponent->SetSimulatePhysics(true);
-	}
-	else
-	{
-		GetAttachParent()->K2_DetachFromComponent
-		(
-			EDetachmentRule::KeepWorld,
-			EDetachmentRule::KeepWorld,
-			EDetachmentRule::KeepWorld
-		);
-	}
+	UKismetSystemLibrary::PrintString(GetWorld(), L"Release", true, true, FLinearColor::Green);
+	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
+	primComponent->SetSimulatePhysics(true);
+
+	GetAttachParent()->K2_DetachFromComponent
+	(
+		EDetachmentRule::KeepWorld,
+		EDetachmentRule::KeepWorld,
+		EDetachmentRule::KeepWorld
+	);
 }
 
 void UGrabComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 }
 
-void UGrabComponent::SetShouldSimulateOnDrop()
-{
-	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
-	bSimulateOnDrop = primComponent->IsAnySimulatingPhysics();
-}
 

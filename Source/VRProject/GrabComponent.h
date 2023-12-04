@@ -10,10 +10,8 @@ class VRPROJECT_API UGrabComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
-	bool bSimulateOnDrop;
-	UHapticFeedbackEffect_Base* hapticEffect;
-
-	void SetShouldSimulateOnDrop();
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	class UStaticMeshComponent* mesh;
 
 public:	
 	UGrabComponent();
