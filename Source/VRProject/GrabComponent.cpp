@@ -16,7 +16,7 @@ void UGrabComponent::BeginPlay()
 
 bool UGrabComponent::TryGrab(UMotionControllerComponent* motionControllerComponent)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Grab", true, true, FLinearColor::Green);
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Grab", true, true, FLinearColor::Green);
 	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
 	primComponent->SetSimulatePhysics(false);
 
@@ -35,7 +35,7 @@ bool UGrabComponent::TryGrab(UMotionControllerComponent* motionControllerCompone
 
 void UGrabComponent::TryRelease()
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Release", true, true, FLinearColor::Green);
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Release", true, true, FLinearColor::Green);
 	UPrimitiveComponent* primComponent = Cast<UPrimitiveComponent>(GetAttachParent());
 	primComponent->SetSimulatePhysics(true);
 

@@ -12,11 +12,17 @@ class UCameraComponent;
 class UInputConfigData;
 class UGrabComponent;
 class USphereComponent;
+class UNiagaraComponent;
+class AVRTeleportVisualizer;
 
 UCLASS()
 class VRPROJECT_API AVRCharacter : public ACharacter
 {
 	GENERATED_BODY()
+
+	const float localTeleportLaunchSpeed = 650.f;
+	const float localTeleportProjectileRadius = 3.6;
+	const float localNavMeshCellHeight = 8.f;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UCameraComponent* camera;
@@ -45,6 +51,21 @@ class VRPROJECT_API AVRCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = "Grab")
 	class USphereComponent* rightSphere;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	class UNiagaraComponent* teleportTraceNiagaraSystem;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	FVector projectedLocation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	bool isValidTeleportLocation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	TSubclassOf<AVRTeleportVisualizer> vrTeleportVisualizer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Teleport")
+	class AVRTeleportVisualizer* vrTeleportVisualizerRef;
+
 public:
 	// Sets default values for this character's properties
 	AVRCharacter();
@@ -64,4 +85,10 @@ public:
 
 	void Grab_Started(const FInputActionValue& value, UMotionControllerComponent* motionController);
 	void Grab_Completed(const FInputActionValue& value, UMotionControllerComponent* motionController);
+
+	void Teleport_Started(const FInputActionValue& value);
+	void Teleport_Triggered(const FInputActionValue& value);
+	void Teleport_Completed(const FInputActionValue& value);
+	bool IsValidTeleportLocation(FHitResult& hit);
+	void TryTeleport();
 };
