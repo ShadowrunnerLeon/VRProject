@@ -91,7 +91,15 @@ void AVRCharacter::Grab_Started(const FInputActionValue& value, UMotionControlle
 {
 	//UKismetSystemLibrary::PrintString(GetWorld(), L"Grab_Started", true, true, FLinearColor::Green);
 	TArray<AActor*> overlappingActors;
-	leftSphere->GetOverlappingActors(overlappingActors);
+
+	if (motionController->GetTrackingMotionSource() == "Left")
+	{
+		leftSphere->GetOverlappingActors(overlappingActors);
+	}
+	else if (motionController->GetTrackingMotionSource() == "Right")
+	{
+		rightSphere->GetOverlappingActors(overlappingActors);
+	}
 
 	for (AActor* actor : overlappingActors)
 	{
@@ -131,7 +139,7 @@ void AVRCharacter::Grab_Completed(const FInputActionValue& value, UMotionControl
 
 void AVRCharacter::Teleport_Started(const FInputActionValue& value)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Started", true, true, FLinearColor::Green);
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Started", true, true, FLinearColor::Green);
 	teleportTraceNiagaraSystem->SetVisibility(true);
 
 	FActorSpawnParameters spawnParams;
@@ -149,23 +157,18 @@ void AVRCharacter::Teleport_Started(const FInputActionValue& value)
 
 void AVRCharacter::Teleport_Triggered(const FInputActionValue& value)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Triggered", true, true, FLinearColor::Green);
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Triggered", true, true, FLinearColor::Green);
 	FVector startPos = leftMotionController->GetComponentLocation();
 	FVector forwardVec = leftMotionController->GetForwardVector();
 
-	// seq 1
-	FVector convVec = UKismetMathLibrary::Conv_DoubleToVector(localTeleportLaunchSpeed);
-	FVector launchVelocity = startPos * convVec;
+	FVector launchVelocity = forwardVec * localTeleportLaunchSpeed;
 
 	FHitResult outHit;
 	TArray<FVector> teleportTracePathPositions;
 	FVector outLastTraceDestination;
-	TArray<TEnumAsByte<EObjectTypeQuery>> objectTypes;
 	TArray<AActor*> actorsToIgnore;
 
-	objectTypes.Add(TEnumAsByte<EObjectTypeQuery>(ECollisionChannel::ECC_WorldStatic));
-
-	UGameplayStatics::Blueprint_PredictProjectilePath_ByObjectType
+	UGameplayStatics::Blueprint_PredictProjectilePath_ByTraceChannel
 	(
 		GetWorld(),
 		outHit,
@@ -175,7 +178,7 @@ void AVRCharacter::Teleport_Triggered(const FInputActionValue& value)
 		launchVelocity,
 		true,
 		localTeleportProjectileRadius,
-		objectTypes,
+		ECollisionChannel::ECC_WorldStatic,
 		false,
 		actorsToIgnore,
 		EDrawDebugTrace::None,
@@ -191,16 +194,15 @@ void AVRCharacter::Teleport_Triggered(const FInputActionValue& value)
 	{
 		USceneComponent* rootComponent = vrTeleportVisualizerRef->GetRootComponent();
 		rootComponent->SetVisibility(true, true);
-	}
 
-	// seq 2
-	vrTeleportVisualizerRef->SetActorLocation(projectedLocation);
-	UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(teleportTraceNiagaraSystem, FName("User.PointArray"), teleportTracePathPositions);
+		vrTeleportVisualizerRef->SetActorLocation(projectedLocation);
+		UNiagaraDataInterfaceArrayFunctionLibrary::SetNiagaraArrayVector(teleportTraceNiagaraSystem, FName("User.PointArray"), teleportTracePathPositions);
+	}
 }
 
 void AVRCharacter::Teleport_Completed(const FInputActionValue& value)
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Completed", true, true, FLinearColor::Green);
+	//UKismetSystemLibrary::PrintString(GetWorld(), L"Teleport_Completed", true, true, FLinearColor::Green);
 
 	if (IsValid(vrTeleportVisualizer)) vrTeleportVisualizerRef->Destroy();
 	teleportTraceNiagaraSystem->SetVisibility(false);
@@ -223,6 +225,7 @@ void AVRCharacter::TryTeleport()
 {
 	if (!isValidTeleportLocation) return;
 
+	isValidTeleportLocation = false;
 	FVector cameraLocation = camera->GetRelativeLocation();
 	cameraLocation.Z = 0;
 
@@ -231,6 +234,6 @@ void AVRCharacter::TryTeleport()
 	FVector rotatedVector = rot.RotateVector(cameraLocation);
 
 	FVector destLocation = projectedLocation - rotatedVector;
-	TeleportTo(destLocation, FRotator(0.f, 0.f, actorRotation.Yaw));
+	TeleportTo(destLocation, FRotator(0.f, 0.f, 0.f));
 }
 
